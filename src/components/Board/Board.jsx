@@ -1,21 +1,44 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import { turnCheck, winner, checkStatus } from "../../utils";
+
+const Tile = styled.button`
+  width: 80px;
+  height: 80px;
+  background-color: white;
+  border: 1px solid black;
+  cursor: pointer;
+  color: blue;
+  font-size: 2.5rem;
+`;
+
+const RowWrap = styled.div`
+  display: flex;
+  margin: 0;
+  padding: 0;
+`;
 
 export const Board = () => {
-  const squares = Array(9).fill(null);
+  const [squares, setSquares] = useState(Array(9).fill(null));
+  const [turn, setTurn] = useState("X");
+  const [gameOver, setGameOver] = useState(false);
+  const [status, setStatus] = useState(checkStatus(gameOver, turn, squares));
 
   const selectSquare = (square) => {
-    console.log(square);
+    if (gameOver || squares[square]) {
+      return;
+    }
+
+    const mSquares = [...squares];
+    mSquares[square] = turn;
+    setSquares(mSquares);
   };
 
-  const Tile = styled.button`
-    width: 80px;
-    height: 80px;
-    background-color: white;
-    border: 1px solid black;
-    cursor: pointer;
-    color: blue;
-  `;
+  useEffect(() => {
+    setGameOver(winner(squares));
+    setStatus(checkStatus(gameOver, turn, squares));
+    setTurn(turnCheck(squares));
+  }, [turn, squares, gameOver]);
 
   const renderSquare = (i) => (
     <Tile className="square" onClick={() => selectSquare(i)}>
@@ -23,15 +46,15 @@ export const Board = () => {
     </Tile>
   );
 
-  const RowWrap = styled.div`
-    display: flex;
-    margin: 0;
-    padding: 0;
-  `;
+  const restart = () => {
+    setSquares(Array(9).fill(null));
+    setTurn("X");
+    setGameOver(false);
+  };
 
   return (
     <div>
-      <div>Status: </div>
+      <div style={{ paddingBottom: "20px" }}>Status: {status}</div>
       <RowWrap className="board-row">
         {renderSquare(0)}
         {renderSquare(1)}
@@ -47,7 +70,7 @@ export const Board = () => {
         {renderSquare(7)}
         {renderSquare(8)}
       </RowWrap>
-      <button>Restart</button>
+      <button onClick={() => restart()}>Restart</button>
     </div>
   );
 };
